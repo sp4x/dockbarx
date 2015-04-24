@@ -17,28 +17,32 @@
 #	You should have received a copy of the GNU General Public License
 #	along with dockbar.  If not, see <http://www.gnu.org/licenses/>.
 
-from dockbarx.log import *
+from Xlib import display
+import cairo
+import dbus
+import dbus.service
+import gobject
+import gtk
+from math import pi, sin, cos, tan, atan
+import pygtk
 import sys
+import time
+import weakref
+import wnck
+
+from dockbarx.applets import DockXApplets, DockXApplet
+from dockbarx.common import Globals
+import dockbarx.dockbar
+from dockbarx.log import *
+from dockbarx.theme import DockTheme
+import dockbarx.qtile
+
+
 log_to_file()
 sys.stderr = StdErrWrapper()
 sys.stdout = StdOutWrapper()
 
-import pygtk
 pygtk.require("2.0")
-import gtk
-import cairo
-import dockbarx.dockbar
-import wnck
-import gobject
-from dockbarx.common import Globals
-from dockbarx.theme import DockTheme
-from dockbarx.applets import DockXApplets, DockXApplet
-from Xlib import display
-from math import pi, sin, cos, tan, atan
-import weakref
-import time
-import dbus
-import dbus.service
 
 WNCK_WINDOW_STATE_MINIMIZED = 1
 
@@ -498,7 +502,7 @@ class DockX(CairoDockX):
         self.windows = weakref.WeakKeyDictionary()
         self.border_distances = weakref.WeakKeyDictionary()
         self.db_loaded = False
-        self.dockbar = dockbarx.dockbar.DockBar(parent=self)
+        self.dockbar = dockbarx.qtile.DockQ(parent=self)
         self.dockbar.set_parent_handles_menu(True)
         self.dockbar.set_parent_window_reporting(True)
         self.dockbar.set_no_theme_change_reload(True)

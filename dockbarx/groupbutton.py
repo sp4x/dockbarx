@@ -911,6 +911,11 @@ class Group(ListOfWindows):
                 self.action_select_next(widget, event)
             elif smw == "show popup":
                 self.action_select_popup(widget, event)
+        else:
+            self.action_select_empty()
+            
+    def action_select_empty(self):
+        pass
 
     def action_select_popup(self, widget, event):
         if self.popup.popup_showing is True:
