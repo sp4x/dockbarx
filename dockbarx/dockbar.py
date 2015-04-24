@@ -896,6 +896,9 @@ class DockBar():
         return group
 
     def __add_window(self, window):
+        self.add_window(window)
+
+    def add_window(self, window):
         res_class = window.get_class_group().get_res_class().lower()
         res_name = window.get_class_group().get_name().lower()
         identifier = res_class or res_name or window.get_name().lower()
