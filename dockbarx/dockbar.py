@@ -620,7 +620,6 @@ class DockBar():
         # Update pinned_apps list to remove any pinned_app that are faulty.
         self.update_pinned_apps_list()
         
-
         #--- Initiate windows
         # Initiate group buttons with windows
         for window in self.screen.get_windows():
@@ -643,6 +642,7 @@ class DockBar():
 
     def make_group_list(self):
         return GroupList(self, self.orient)
+    
 
     def set_orient(self, orient):
         """ Set the orient (up, down, left or right) and prepares the container.
