@@ -117,6 +117,17 @@ class ListOfWindows(list):
         return len(self.get_unminimized_windows())
 
 
+class WidgetFactory:
+    
+    def get_group_button(self, group):
+        return GroupButton(group)
+    
+    def get_group_popup(self, group):
+        return GroupPopup(group)
+    
+    def get_window_list(self, group):
+        return  WindowList(group)
+        
 
 class Group(ListOfWindows):
     """A group contains all windows of the group, the button and popup window.
@@ -126,7 +137,7 @@ class Group(ListOfWindows):
     the popup window, the window list and other stuff."""
 
     def __init__(self, dockbar, identifier=None, desktop_entry=None,
-                 pinned=False):
+                 pinned=False, widget_factory=WidgetFactory()):
         ListOfWindows.__init__(self)
         self.dockbar_r = weakref.ref(dockbar)
         self.globals = Globals()
@@ -173,9 +184,9 @@ class Group(ListOfWindows):
         self.monitor_aspect_ratio = float(mgeo.width) / mgeo.height
 
 
-        self.button = GroupButton(self)
-        self.popup = GroupPopup(self)
-        self.window_list = WindowList(self)
+        self.button = widget_factory.get_group_button(self)
+        self.popup = widget_factory.get_group_popup(self)
+        self.window_list = widget_factory.get_window_list(self)
         self.popup.set_child_(self.window_list)
         self.locked_popup = None
 
@@ -1445,13 +1456,19 @@ class GroupButton(CairoAppButton):
             self.icon_factory.remove()
             self.icon_factory = None
         CairoAppButton.destroy(self, *args, **kwargs)
+        
+    
+    def must_hide(self):
+        group = self.group_r()
+        window_count = min(group.get_count(), 15)
+        return window_count == 0 and not group.pinned
 
     #### State
     def update_state(self, force_update=False):
         # Checks button state and set the icon accordingly.
         group = self.group_r()
         window_count = min(group.get_count(), 15)
-        if window_count == 0 and not group.pinned:
+        if self.must_hide():
             # Hide the button if no windows are on the current screen.
             self.hide()
             return
@@ -1852,6 +1869,11 @@ class GroupButton(CairoAppButton):
 
             # Update icon geometry
             self.set_icongeo()
+            
+    def must_show_popup(self):
+        group = self.group_r()
+        window_cnt = group.get_count()
+        return window_cnt > 0 or group.media_controls
 
     def do_enter_notify_event(self, event):
         group = self.group_r()
@@ -1865,8 +1887,8 @@ class GroupButton(CairoAppButton):
         if window_cnt <= 1 and \
            self.globals.settings["no_popup_for_one_window"]:
             return
-        if  window_cnt == 0 and not group.media_controls:
-            return
+        if not self.must_show_popup():
+           return
 
         if self.globals.get_shown_popup() is None:
             delay = self.globals.settings["popup_delay"]

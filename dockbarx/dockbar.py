@@ -592,7 +592,7 @@ class DockBar():
             self.popup_style.reload()
 
         # Set up groups.
-        self.groups = GroupList(self, self.orient)
+        self.groups = self.make_group_list()
         self.groups.set_spacing(self.theme.get_gap())
         self.groups.set_aspect_ratio(self.theme.get_aspect_ratio())
         self.groups.show()
@@ -619,6 +619,7 @@ class DockBar():
             self.__add_launcher(identifier, path)
         # Update pinned_apps list to remove any pinned_app that are faulty.
         self.update_pinned_apps_list()
+        
 
         #--- Initiate windows
         # Initiate group buttons with windows
@@ -640,6 +641,8 @@ class DockBar():
         if tell_parent:
             self.parent.readd_container(self.get_container())
 
+    def make_group_list(self):
+        return GroupList(self, self.orient)
 
     def set_orient(self, orient):
         """ Set the orient (up, down, left or right) and prepares the container.
@@ -871,10 +874,13 @@ class DockBar():
             desktop_entry = self.__get_desktop_entry_for_id(app.get_id())
             group.set_desktop_entry(desktop_entry)
         group.update_name()
+        
+    def make_group(self, identifier, desktop_entry, pinned):
+        return Group(self, identifier, desktop_entry, pinned)
 
     def __make_groupbutton(self, identifier=None, desktop_entry=None,
                          pinned=False, index=None, window=None):
-        group = Group(self, identifier, desktop_entry, pinned)
+        group = self.make_group(identifier, desktop_entry, pinned)
         if window is not None:
             # Windows are added here instead of later so that
             # overflow manager knows if the button should be
@@ -960,11 +966,14 @@ class DockBar():
                 del self.windows[window]
                 return
 
+    def must_remove_group(self, group):
+        return not len(group) and not group.pinned
+
     def __remove_window(self, window):
         identifier = self.windows[window]
         group = self.groups[identifier]
         group.del_window(window)
-        if not len(group) and not group.pinned:
+        if self.must_remove_group(group):
             self.remove_groupbutton(group)
         del self.windows[window]
 
